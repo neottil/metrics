@@ -1,0 +1,6 @@
+influx
+show databases
+use <databasename>
+
+precision rfc3339
+select time, last(go_gc_duration_seconds_count) as go_gc_duration_count from "prometheus_remote_write"

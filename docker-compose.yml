@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+
+  prometheus:
+    image: prom/prometheus:v2.42.0
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - 9090:9090
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  influxdb:
+    image: influxdb:1.7-alpine
+    ports:
+      - 8086:8086
+    environment:
+      - DOCKER_INFLUXDB_INIT_USERNAME=influx_admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=influx_admin_2022
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:8086/ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+
+  telegraf:
+    image: telegraf:1.24-alpine
+    volumes:
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      # - ./telegraf:/usr/bin/telegraf
+    ports:
+      - 8186:8186
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    #   influxdb:
+    #     condition: service_healthy
