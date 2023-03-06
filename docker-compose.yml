@@ -5,7 +5,7 @@ services:
   prometheus:
     image: prom/prometheus:v2.42.0
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
       - 9090:9090
     healthcheck:
@@ -32,12 +32,23 @@ services:
   telegraf:
     image: telegraf:1.24-alpine
     volumes:
-      - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
-      # - ./telegraf:/usr/bin/telegraf
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      # - metrics:/tmp
     ports:
       - 8186:8186
     depends_on:
       prometheus:
         condition: service_healthy
-    #   influxdb:
-    #     condition: service_healthy
+      influxdb:
+        condition: service_healthy
+
+  fluentd:
+    build:
+      context: fluentd
+    volumes:
+      - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf:ro
+      - ./fluentd/metrics.out:/var/metrics/metrics.out
+      # - metrics:/var/metrics
+
+# volumes:
+#   metrics:
